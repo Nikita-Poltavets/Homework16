@@ -39,7 +39,7 @@ public class InitializeObjectsFromCsvTableImpl implements InitializeObjectsFromC
 
                                 String cell = optionalCsvTable.get().get(i, optionalCsvTable.get().getHeaders().get(j));
 
-                                field.set(tObject, getConvertedVariable(cell));
+                                field.set(tObject, getConvertedVariable(cell, field));
                             }
                         }
                     }
@@ -48,22 +48,28 @@ public class InitializeObjectsFromCsvTableImpl implements InitializeObjectsFromC
             }
             return list;
         } catch (IOException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | InstantiationException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
-
     @Override
-    public Object getConvertedVariable(String field) {
-        try {
-            Integer integerNumber = Integer.parseInt(field);
-            return integerNumber;
-        } catch (NumberFormatException ignored) {}
-        try {
-            Double doubleNumber = Double.parseDouble(field);
-            return doubleNumber;
-        } catch (NumberFormatException ignored) {}
-        return field;
+    public Object getConvertedVariable(String cell, Field field){
+        Class<?> type = field.getType();
+
+        if(type == String.class){
+            return cell;
+        } else if(type == int.class || type == Integer.class){
+            return Integer.parseInt(cell);
+        } else if(type == long.class || type == Long.class) {
+            return Long.parseLong(cell);
+        } else if(type == double.class || type == Double.class) {
+            return Double.parseDouble(cell);
+        } else if(type == boolean.class || type == Boolean.class) {
+            return Boolean.parseBoolean(cell);
+        } else {
+               throw new UnsupportedOperationException("Unsupported field type (" +
+                       type.getName() + ") is required for field " +
+                       field.getName());
+        }
     }
 }
